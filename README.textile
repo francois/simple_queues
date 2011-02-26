@@ -4,6 +4,10 @@ In the Gang of Four books, one of the first few lines is "Program to an interfac
 
 This library was written and spec'd on Ruby 1.9.2. It's so small it should work anywhere the Redis gem works.
 
+h2. Exceptions
+
+All underlying exceptions the Redis gem raises are let through: no extra exceptions are raised. This means you'll see <code>Errno::ECONNREFUSED</code>, <code>Errno::EAGAIN</code> and friends.
+
 h2. Usage
 
 <pre><code>require "simple_queues"

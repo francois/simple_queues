@@ -10,3 +10,10 @@ rescue LoadError
   warn "RSpec not available - Rake tasks not available"
   warn "Install rspec using: gem install rspec"
 end
+
+begin
+  require "yard"
+  YARD::Rake::YardocTask.new(:doc)
+rescue LoadError
+  warn "YARD not available - gem install yard"
+end
