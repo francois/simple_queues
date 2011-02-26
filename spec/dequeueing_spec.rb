@@ -48,4 +48,9 @@ describe SimpleQueues::Redis, "dequeue_with_timeout" do
     lambda { queue.dequeue_with_timeout(nil) }.should raise_error(ArgumentError)
     lambda { queue.dequeue_with_timeout("") }.should raise_error(ArgumentError)
   end
+  
+  it "returns the unserialized object" do
+    redis.should_receive(:blpop).with("test", 5).and_return("{\"hello\":\"world\",\"x\":42}" )
+    queue.dequeue_with_timeout(:test, 5).should == {"hello" => "world", "x" => 42}
+  end
 end

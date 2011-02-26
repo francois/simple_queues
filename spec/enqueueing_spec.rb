@@ -39,5 +39,8 @@ describe SimpleQueues::Redis, "enqueue" do
 
     redis.should_receive(:rpush).with("ops", '[1,2,3]')
     queue.enqueue :ops, [1, 2, 3]
+
+    redis.should_receive(:rpush).with("ops", "{\"hello\":\"world\",\"x\":42}")
+    queue.enqueue :ops, {:hello => "world", :x => 42}
   end
 end
