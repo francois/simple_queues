@@ -1,4 +1,4 @@
-autoload :Redis, "redis"
+require "redis"
 require 'json'
 
 module SimpleQueues
@@ -47,8 +47,8 @@ module SimpleQueues
     # @raise ArgumentError If +queue_name+ is nil or the empty String.
     def dequeue_with_timeout(queue_name, timeout)
       raise ArgumentError, "Queue name argument was nil - must not be" if queue_name.nil? || queue_name.to_s.empty?
-
-      unserialize(@redis.blpop(queue_name.to_s, timeout))
+      r = @redis.blpop(queue_name.to_s, timeout)
+      unserialize(r && r[1])
     end
   end
 end
