@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["François Beausoleil"]
   s.email       = ["francois@teksol.info"]
-  s.homepage    = ""
+  s.homepage    = "https://github.com/francois/simple_queues"
   s.summary     = %q{Simple enqueue/dequeue API for working with queues}
   s.description = %q{Program to an interface, not an implementation - hides Redis (used as a queue) behind a simple interface}
 
