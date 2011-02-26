@@ -1,9 +1,11 @@
+autoload :Redis, "redis"
+
 module SimpleQueues
   # The Redis version of SimpleQueues.
   #
   # Messages are enqueued to the right, dequeued from the left - thus the most recent messages are at the end of the list.
   class Redis
-    def initialize(redis=Redis.new)
+    def initialize(redis = ::Redis.new)
       @redis = redis
     end
 
