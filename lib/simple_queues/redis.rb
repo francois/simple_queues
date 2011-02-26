@@ -8,7 +8,7 @@ module SimpleQueues
       raise ArgumentError, "Queue name argument was nil - must not be" if queue_name.nil? || queue_name.to_s.empty?
       raise ArgumentError, "Message argument was nil - must not be" if message.nil?
 
-      @redis.rpush(queue_name.to_s, message)
+      @redis.rpush(queue_name.to_s, message.to_s)
     end
 
     def dequeue_blocking(queue_name)

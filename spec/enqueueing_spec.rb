@@ -32,4 +32,9 @@ describe SimpleQueues::Redis, "enqueue" do
     redis.should_receive(:rpush).with("pages_to_crawl", "http://blog.teksol.info/")
     queue.enqueue :pages_to_crawl, "http://blog.teksol.info/"
   end
+
+  it "translates the message to a String before enqueueing" do
+    redis.should_receive(:rpush).with("ops", "shutdown_and_destroy")
+    queue.enqueue :ops, :shutdown_and_destroy
+  end
 end
