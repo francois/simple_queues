@@ -1,0 +1,56 @@
+h1. SimpleQueues
+
+In the Gang of Four books, one of the first few lines is "Program to an interface, not an implementation." When you need a queue, the only operations you need are enqueue and dequeue. It doesn't matter that Redis (a nice and simple queue server when you need it) has all kinds of operations available.
+
+This library was written and spec'd on Ruby 1.9.2. It's so small it should work anywhere the Redis gem works.
+
+h2. Usage
+
+<pre><code>require "simple_queues"
+Queues = SimpleQueues::Redis.new
+
+Queues.enqueue :pages_to_crawl, {:url => "http://blog.teksol.info"}.to_json
+Queues.enqueue :pages_to_crawl, {:url => "http://techcrunch.com"}.to_json
+
+# In another process
+
+loop do
+  message = Queues.dequeue_blocking :pages_to_crawl
+  process(message)
+end
+
+# Alternatively, using a timeout
+loop do
+  message = Queues.dequeue_with_timeout :pages_to_crawl, 5 # seconds
+  if message then
+    process(message)
+  else
+    # Timed out
+  end
+end
+<code></pre>
+
+h2. LICENSE
+
+(The MIT License)
+
+Copyright (c) 2008-2009 François Beausoleil (francois@teksol.info)
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+'Software'), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
