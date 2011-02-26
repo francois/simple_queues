@@ -17,4 +17,13 @@ describe SimpleQueues::Redis, "enqueue" do
     queue.clear(:test)
     queue.dequeue_with_timeout(:test, 1).should == nil
   end
+
+  it "returns the queue size" do
+    queue.clear(:test)
+    queue.enqueue(:test, 42)
+    queue.enqueue(:test, 42)
+    queue.enqueue(:test, 42)
+    queue.enqueue(:test, 42)
+    queue.size(:test).should == 4
+  end
 end

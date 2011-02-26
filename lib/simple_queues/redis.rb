@@ -41,6 +41,10 @@ module SimpleQueues
       @redis.ltrim(q_name(queue_name), 1, 0)
     end
 
+    def size(queue_name)
+      @redis.llen(q_name(queue_name))
+    end
+
     # Dequeues a message, or returns +nil+ if the timeout is exceeded.
     #
     # @param queue_name [String, Symbol] The queue name to read from.
