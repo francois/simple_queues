@@ -10,7 +10,7 @@ describe SimpleQueues::Redis, "enqueue" do
   end
 
   it "should enqueue to the end of the list" do
-    redis.should_receive(:rpush).with("q", "message")
+    redis.should_receive(:rpush).with("q", '"message"')
     queue.enqueue("q", "message")
   end
 
@@ -29,12 +29,15 @@ describe SimpleQueues::Redis, "enqueue" do
   end
 
   it "accepts symbols as queue names, translating to a string" do
-    redis.should_receive(:rpush).with("pages_to_crawl", "http://blog.teksol.info/")
+    redis.should_receive(:rpush).with("pages_to_crawl", '"http://blog.teksol.info/"')
     queue.enqueue :pages_to_crawl, "http://blog.teksol.info/"
   end
 
-  it "translates the message to a String before enqueueing" do
-    redis.should_receive(:rpush).with("ops", "shutdown_and_destroy")
+  it "translates the message using JSON before enqueueing" do
+    redis.should_receive(:rpush).with("ops", '"shutdown_and_destroy"')
     queue.enqueue :ops, :shutdown_and_destroy
+
+    redis.should_receive(:rpush).with("ops", '[1,2,3]')
+    queue.enqueue :ops, [1, 2, 3]
   end
 end

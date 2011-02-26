@@ -1,4 +1,5 @@
 autoload :Redis, "redis"
+require 'json'
 
 module SimpleQueues
   # The Redis version of SimpleQueues.
@@ -7,6 +8,14 @@ module SimpleQueues
   class Redis
     def initialize(redis = ::Redis.new)
       @redis = redis
+    end
+
+    def serialize(message)
+      message.to_json
+    end
+
+    def unserialize(message)
+      JSON.parse(message) if message
     end
 
     # Enqueues a new message to the Redis backend.
@@ -18,8 +27,7 @@ module SimpleQueues
     def enqueue(queue_name, message)
       raise ArgumentError, "Queue name argument was nil - must not be" if queue_name.nil? || queue_name.to_s.empty?
       raise ArgumentError, "Message argument was nil - must not be" if message.nil?
-
-      @redis.rpush(queue_name.to_s, message.to_s)
+      @redis.rpush(queue_name.to_s, serialize(message))
     end
 
     # Dequeues a message, and waits forever for one to arrive.
@@ -40,7 +48,7 @@ module SimpleQueues
     def dequeue_with_timeout(queue_name, timeout)
       raise ArgumentError, "Queue name argument was nil - must not be" if queue_name.nil? || queue_name.to_s.empty?
 
-      @redis.blpop(queue_name.to_s, timeout)
+      unserialize(@redis.blpop(queue_name.to_s, timeout))
     end
   end
 end
