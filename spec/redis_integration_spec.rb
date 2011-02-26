@@ -12,4 +12,9 @@ describe SimpleQueues::Redis, "enqueue" do
     queue.dequeue_with_timeout(:test, 2).should == nil
   end
 
+  it "clears the queue" do
+    queue.enqueue(:test, 42)
+    queue.clear(:test)
+    queue.dequeue_with_timeout(:test, 1).should == nil
+  end
 end

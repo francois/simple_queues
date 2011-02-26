@@ -25,9 +25,7 @@ module SimpleQueues
     # @return No useful value.
     # @raise ArgumentError Whenever the queue name or the message are nil, or the queue name is empty.
     def enqueue(queue_name, message)
-      raise ArgumentError, "Queue name argument was nil - must not be" if queue_name.nil? || queue_name.to_s.empty?
-      raise ArgumentError, "Message argument was nil - must not be" if message.nil?
-      @redis.rpush(queue_name.to_s, serialize(message))
+      @redis.rpush(q_name(queue_name), serialize(message))
     end
 
     # Dequeues a message, and waits forever for one to arrive.
@@ -39,6 +37,10 @@ module SimpleQueues
       dequeue_with_timeout(queue_name, 0)
     end
 
+    def clear(queue_name)
+      @redis.ltrim(q_name(queue_name), 1, 0)
+    end
+
     # Dequeues a message, or returns +nil+ if the timeout is exceeded.
     #
     # @param queue_name [String, Symbol] The queue name to read from.
@@ -46,9 +48,15 @@ module SimpleQueues
     # @return [String, nil] The first message in the queue, or nil if the timeout was exceeded.
     # @raise ArgumentError If +queue_name+ is nil or the empty String.
     def dequeue_with_timeout(queue_name, timeout)
-      raise ArgumentError, "Queue name argument was nil - must not be" if queue_name.nil? || queue_name.to_s.empty?
-      r = @redis.blpop(queue_name.to_s, timeout)
+      r = @redis.blpop(q_name(queue_name), timeout)
       unserialize(r && r[1])
+    end
+
+  private
+    def q_name(queue_name)
+      queue_name &&= queue_name.to_s
+      raise ArgumentError, "Queue name argument was nil - must not be" if queue_name.nil? || queue_name.empty?
+      queue_name
     end
   end
 end
