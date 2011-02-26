@@ -48,8 +48,8 @@ module SimpleQueues
     # @return [String, nil] The first message in the queue, or nil if the timeout was exceeded.
     # @raise ArgumentError If +queue_name+ is nil or the empty String.
     def dequeue_with_timeout(queue_name, timeout)
-      r = @redis.blpop(q_name(queue_name), timeout)
-      unserialize(r && r[1])
+      queue, result = @redis.blpop(q_name(queue_name), timeout)
+      unserialize(result)
     end
 
   private
