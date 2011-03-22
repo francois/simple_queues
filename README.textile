@@ -13,8 +13,8 @@ h2. Usage
 <pre><code>require "simple_queues"
 Queues = SimpleQueues::Redis.new
 
-Queues.enqueue :pages_to_crawl, {:url => "http://blog.teksol.info"}.to_json
-Queues.enqueue :pages_to_crawl, {:url => "http://techcrunch.com"}.to_json
+Queues.enqueue :pages_to_crawl, :url => "http://blog.teksol.info"
+Queues.enqueue :pages_to_crawl, :url => "http://techcrunch.com"
 
 # In another process
 

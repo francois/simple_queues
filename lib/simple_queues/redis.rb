@@ -11,10 +11,12 @@ module SimpleQueues
     end
 
     def serialize(message)
+      raise ArgumentError, "message must be non-nil" if message.nil?
+      raise ArgumentError, "message must be respond to #to_json" unless message.respond_to?(:to_json)
       message.to_json
     end
 
-    def unserialize(message)
+    def deserialize(message)
       JSON.parse(message) if message
     end
 
@@ -25,7 +27,9 @@ module SimpleQueues
     # @return No useful value.
     # @raise ArgumentError Whenever the queue name or the message are nil, or the queue name is empty.
     def enqueue(queue_name, message)
-      @redis.rpush(q_name(queue_name), serialize(message))
+      msg = serialize(message)
+      @redis.rpush(q_name(queue_name), msg)
+      msg
     end
 
     # Dequeues a message, and waits forever for one to arrive.
@@ -48,12 +52,12 @@ module SimpleQueues
     # Dequeues a message, or returns +nil+ if the timeout is exceeded.
     #
     # @param queue_name [String, Symbol] The queue name to read from.
-    # @param timeout [#to_i] The number of seconds to wait before returning nil.
+    # @param timeout [#to_f] The number of seconds to wait before returning nil.
     # @return [String, nil] The first message in the queue, or nil if the timeout was exceeded.
     # @raise ArgumentError If +queue_name+ is nil or the empty String.
     def dequeue_with_timeout(queue_name, timeout)
-      queue, result = @redis.blpop(q_name(queue_name), timeout)
-      unserialize(result)
+      queue, result = @redis.blpop(q_name(queue_name), timeout.to_i)
+      deserialize(result)
     end
 
   private

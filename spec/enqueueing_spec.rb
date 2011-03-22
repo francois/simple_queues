@@ -14,6 +14,12 @@ describe SimpleQueues::Redis, "enqueue" do
     queue.enqueue("q", "message")
   end
 
+  it "should return the serialized message" do
+    redis.should_receive(:rpush).twice
+    queue.enqueue("q", "whatever").should == queue.serialize("whatever")
+    queue.enqueue("q", {:message => "whatever"}).should == queue.serialize(:message => "whatever")
+  end
+
   it "should reject invalid queue names" do
     lambda { queue.enqueue(nil, "") }.should raise_error(ArgumentError)
     lambda { queue.enqueue("", "") }.should raise_error(ArgumentError)
