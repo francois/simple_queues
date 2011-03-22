@@ -34,9 +34,9 @@ loop do
 end
 <code></pre>
 
-h1. Multiple Queues (PLANNED)
+h1. Multiple Queues
 
-Sometimes, you want to dequeue from multiple queues simultaneously, and react appropriately. When that happens, you need to use the <code>#on_dequeue</code> method:
+Sometimes, you want to dequeue from multiple queues simultaneously, and react appropriately. When that happens, you need to use <code>#on_dequeue</code>:
 
 <pre><code>require "simple_queues"
 Queues = SimpleQueues::Redis.new

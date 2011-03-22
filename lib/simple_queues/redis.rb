@@ -7,7 +7,12 @@ module SimpleQueues
   # Messages are enqueued to the right, dequeued from the left - thus the most recent messages are at the end of the list.
   class Redis
     def initialize(redis = ::Redis.new)
-      @redis = redis
+      @redis  = redis
+      @queues = Hash.new
+    end
+
+    def on_dequeue(queue_name, &block)
+      @queues[q_name(queue_name)] = block
     end
 
     def serialize(message)
@@ -51,13 +56,27 @@ module SimpleQueues
 
     # Dequeues a message, or returns +nil+ if the timeout is exceeded.
     #
-    # @param queue_name [String, Symbol] The queue name to read from.
+    # @param queue_name [String, Symbol] The queue name to read from. Optional if you used #on_dequeue.
     # @param timeout [#to_f] The number of seconds to wait before returning nil.
-    # @return [String, nil] The first message in the queue, or nil if the timeout was exceeded.
-    # @raise ArgumentError If +queue_name+ is nil or the empty String.
-    def dequeue_with_timeout(queue_name, timeout)
-      queue, result = @redis.blpop(q_name(queue_name), timeout.to_i)
-      deserialize(result)
+    # @return [String, nil] When given two arguments, returns the message, or nil if the timeout was exceeded. When given a timeout only, always returns nil.
+    # @raise ArgumentError If +queue_name+ is absent and no #on_dequeue blocks were added.
+    def dequeue_with_timeout(*args)
+      case args.length
+      when 1 # Timeout only
+        timeout = args.shift
+        raise ArgumentError, "Timeout must not be nil" if timeout.nil? || timeout.to_s.empty?
+
+        queue, result = @redis.blpop(*@queues.keys, timeout.to_i)
+        @queues.fetch(queue).call(deserialize(result)) if queue
+        queue
+      when 2
+        queue_name, timeout = args.shift, args.shift
+        _, result = @redis.blpop(q_name(queue_name), timeout.to_i)
+        deserialize(result)
+      else
+        raise "NOT DONE"
+      end
+
     end
 
   private
