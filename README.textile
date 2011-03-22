@@ -34,6 +34,27 @@ loop do
 end
 <code></pre>
 
+h1. Multiple Queues
+
+Sometimes, you want to dequeue from multiple queues simultaneously, and react appropriately. When that happens, you need to use the <code>#on_dequeue</code> method:
+
+<pre><code>require "simple_queues"
+Queues = SimpleQueues::Redis.new
+
+$running = true
+Queues.on_dequeue :crawler_controls do |message|
+  $running = false if message["command"] == "quit"
+end
+
+Queues.on_dequeue :pages_to_crawl do |message|
+  # Handle crawling a page
+end
+
+while $running do
+  Queues.dequeue_with_timeout 5 #seconds
+end
+</code></pre>
+
 h2. LICENSE
 
 (The MIT License)
