@@ -34,7 +34,7 @@ loop do
 end
 <code></pre>
 
-h1. Multiple Queues
+h1. Multiple Queues (PLANNED)
 
 Sometimes, you want to dequeue from multiple queues simultaneously, and react appropriately. When that happens, you need to use the <code>#on_dequeue</code> method:
 
