@@ -66,7 +66,7 @@ module SimpleQueues
         timeout = args.shift
         raise ArgumentError, "Timeout must not be nil" if timeout.nil? || timeout.to_s.empty?
 
-        queue, result = @redis.blpop(*@queues.keys, timeout.to_i)
+        queue, result = @redis.blpop(*[@queues.keys, timeout.to_i].flatten)
         @queues.fetch(queue).call(deserialize(result)) if queue
         queue
       when 2
