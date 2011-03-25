@@ -6,8 +6,14 @@ module SimpleQueues
   #
   # Messages are enqueued to the right, dequeued from the left - thus the most recent messages are at the end of the list.
   class Redis
-    def initialize(redis = ::Redis.new)
-      @redis  = redis
+    attr_reader :encoder
+
+    def initialize(redis = ::Redis.new, options={})
+      options[:encoder] ||= SimpleQueues::JsonEncoder.new
+
+      @redis   = redis
+      @encoder = options[:encoder]
+
       @queues = Hash.new
     end
 
@@ -15,14 +21,13 @@ module SimpleQueues
       @queues[q_name(queue_name)] = block
     end
 
-    def serialize(message)
+    def encode(message)
       raise ArgumentError, "message must be non-nil" if message.nil?
-      raise ArgumentError, "message must be respond to #to_json" unless message.respond_to?(:to_json)
-      message.to_json
+      encoder.encode(message)
     end
 
-    def deserialize(message)
-      JSON.parse(message) if message
+    def decode(message)
+      encoder.decode(message) if message
     end
 
     # Enqueues a new message to the Redis backend.
@@ -32,7 +37,9 @@ module SimpleQueues
     # @return No useful value.
     # @raise ArgumentError Whenever the queue name or the message are nil, or the queue name is empty.
     def enqueue(queue_name, message)
-      msg = serialize(message)
+      raise ArgumentError, "Only hashes are accepted as messages" unless message.is_a?(Hash)
+
+      msg = encode(message)
       @redis.rpush(q_name(queue_name), msg)
       msg
     end
@@ -67,12 +74,12 @@ module SimpleQueues
         raise ArgumentError, "Timeout must not be nil" if timeout.nil? || timeout.to_s.empty?
 
         queue, result = @redis.blpop(*[@queues.keys, timeout.to_i].flatten)
-        @queues.fetch(queue).call(deserialize(result)) if queue
+        @queues.fetch(queue).call(decode(result)) if queue
         queue
       when 2
         queue_name, timeout = args.shift, args.shift
         _, result = @redis.blpop(q_name(queue_name), timeout.to_i)
-        deserialize(result)
+        decode(result)
       else
         raise "NOT DONE"
       end

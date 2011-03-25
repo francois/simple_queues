@@ -18,9 +18,10 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_dependency 'redis'
-  s.add_dependency 'json'
   s.add_development_dependency 'rspec'
   s.add_development_dependency 'yard'
   s.add_development_dependency 'RedCloth'
   s.add_development_dependency 'ruby-debug19'
+  s.add_development_dependency 'msgpack'
+  s.add_development_dependency 'json'
 end

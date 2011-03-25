@@ -11,4 +11,8 @@
 # * +dequeue_blocking+
 module SimpleQueues
   autoload :Redis, "simple_queues/redis"
+
+  autoload :JsonEncoder, "simple_queues/encoders/json"
+  autoload :MessagePackEncoder, "simple_queues/encoders/message_pack"
+  autoload :IdentityEncoder, "simple_queues/encoders/identity"
 end

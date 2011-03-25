@@ -5,19 +5,46 @@ describe SimpleQueues::Redis, "enqueue" do
     double("redis")
   end
 
+  let :encoder do
+    double("encoder").as_null_object
+  end
+
   let :queue do
-    SimpleQueues::Redis.new(redis)
+    SimpleQueues::Redis.new(redis, :encoder => encoder)
   end
 
-  it "should enqueue to the end of the list" do
-    redis.should_receive(:rpush).with("q", '"message"')
-    queue.enqueue("q", "message")
+  it "should enqueue using the passed-in queue name" do
+    redis.should_receive(:rpush).with("the_queue", anything)
+    queue.enqueue "the_queue", {}
   end
 
-  it "should return the serialized message" do
-    redis.should_receive(:rpush).twice
-    queue.enqueue("q", "whatever").should == queue.serialize("whatever")
-    queue.enqueue("q", {:message => "whatever"}).should == queue.serialize(:message => "whatever")
+  it "should accept symbols as queue names, translating to a string" do
+    redis.should_receive(:rpush).with("pages_to_crawl", anything)
+    queue.enqueue :pages_to_crawl, :url => "http://blog.teksol.info/"
+  end
+
+  it "should enqueue the encoded message" do
+    encoded_message = "jfd9jdf"
+
+    encoder.should_receive(:encode).and_return(encoded_message)
+    redis.should_receive(:rpush).with(anything, encoded_message)
+
+    queue.enqueue("q", :key => "value")
+  end
+
+  it "should return the encoded message" do
+    encoded_message = "barfly123"
+    encoder.should_receive(:encode).and_return(encoded_message)
+    redis.should_receive(:rpush)
+
+    queue.enqueue("q", {:message => "whatever"}).should == encoded_message
+  end
+
+  it "should raise an ArgumentError when the message isn't a Hash" do
+    lambda { queue.enqueue(:q, 42)      }.should raise_error(ArgumentError, "Only hashes are accepted as messages")
+    lambda { queue.enqueue(:q, nil)     }.should raise_error(ArgumentError, "Only hashes are accepted as messages")
+    lambda { queue.enqueue(:q, "")      }.should raise_error(ArgumentError, "Only hashes are accepted as messages")
+    lambda { queue.enqueue(:q, [1,2,3]) }.should raise_error(ArgumentError, "Only hashes are accepted as messages")
   end
 
   it "should reject invalid queue names" do
@@ -25,28 +52,13 @@ describe SimpleQueues::Redis, "enqueue" do
     lambda { queue.enqueue("", "") }.should raise_error(ArgumentError)
   end
 
-  it "should reject nil messages" do
-    lambda { queue.enqueue(:a, nil) }.should raise_error(ArgumentError)
-  end
+  it "should encode the message using the provided encoder" do
+    message = {:a => "b"}
+    encoded_message = 'hfd0hs'
 
-  it "should allow blank messages (although does this make sense?)" do
+    encoder.should_receive(:encode).with(message).and_return(encoded_message)
     redis.should_receive(:rpush)
-    lambda { queue.enqueue(:a, "") }.should_not raise_error
-  end
 
-  it "accepts symbols as queue names, translating to a string" do
-    redis.should_receive(:rpush).with("pages_to_crawl", '"http://blog.teksol.info/"')
-    queue.enqueue :pages_to_crawl, "http://blog.teksol.info/"
-  end
-
-  it "translates the message using JSON before enqueueing" do
-    redis.should_receive(:rpush).with("ops", '"shutdown_and_destroy"')
-    queue.enqueue :ops, :shutdown_and_destroy
-
-    redis.should_receive(:rpush).with("ops", '[1,2,3]')
-    queue.enqueue :ops, [1, 2, 3]
-
-    redis.should_receive(:rpush).with("ops", "{\"hello\":\"world\",\"x\":42}")
-    queue.enqueue :ops, {:hello => "world", :x => 42}
+    queue.enqueue :q, message
   end
 end
