@@ -8,12 +8,24 @@ module SimpleQueues
   class Redis
     attr_reader :encoder
 
+    # @param redis A Redis instance, or something that looks like Redis.
+    # @param options [Hash] A set of options.
+    #
+    # @option :encoder [#decode, #encode, Symbol] Either one of the named encoders, or an object that responds to both +#encode+ and +#decode+. Defaults to :json.
     def initialize(redis = ::Redis.new, options={})
-      options[:encoder] ||= SimpleQueues::JsonEncoder.new
+      @encoder = case options[:encoder]
+                 when :messagepack, :msgpack
+                   SimpleQueues::MessagePackEncoder.new
+                 when :json, nil
+                   SimpleQueues::JsonEncoder.new
+                 when :identity
+                   SimpleQueues::IdentityEncoder.new
+                 else # Use whatever was provided
+                   options[:encoder]
+                 end
+      raise ArgumentError, "Provided encoder #{@encoder.inspect} does not handle #encode and #decode" unless @encoder.respond_to?(:encode) && @encoder.respond_to?(:decode)
 
-      @redis   = redis
-      @encoder = options[:encoder]
-
+      @redis  = redis
       @queues = Hash.new
     end
 
