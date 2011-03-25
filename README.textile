@@ -1,24 +1,30 @@
 h1. SimpleQueues
 
-In the Gang of Four books, one of the first few lines is "Program to an interface, not an implementation." When you need a queue, the only operations you need are enqueue and dequeue. It doesn't matter that Redis (a nice and simple queue server when you need it) has all kinds of operations available.
+In the Gang of Four books, one of the first few lines is "Program to an interface, not an implementation." When you need a queue, the only operations you need are enqueue and dequeue. It doesn't matter that Redis (a nice and simple queue server when you need it) has a ton of extra features which we aren't going to use.
 
-This library was written and spec'd on Ruby 1.9.2. It's so small it should work anywhere the Redis gem works.
+This library was written and spec'd on Ruby 1.9.2. It is also in use, in production, on JRuby in 1.8 mode.
 
 h2. Exceptions
 
-All underlying exceptions the Redis gem raises are let through: no extra exceptions are raised. This means you'll see <code>Errno::ECONNREFUSED</code>, <code>Errno::EAGAIN</code> and friends.
+All underlying exceptions the Redis gem raises are let through. This means you'll see <code>Errno::ECONNREFUSED</code>, <code>Errno::EAGAIN</code> and friends. Of course, you may also receive ArgumentError if you do something bad.
 
 h2. Usage
 
 <pre><code>require "simple_queues"
+# Sane defaults:
+# * Defaults to a Redis instance at 127.0.0.1:6379, database 0
+# * Defaults to the JSON encoder
 Queues = SimpleQueues::Redis.new
 
-Queues.enqueue :pages_to_crawl, :url => "http://blog.teksol.info"
-Queues.enqueue :pages_to_crawl, :url => "http://techcrunch.com"
+Queues.enqueue :pages_to_crawl, :url => "http://blog.teksol.info/"
+Queues.enqueue :pages_to_crawl, :url => "http://techcrunch.com/"
 
 # In another process
 
+Queues = SimpleQueues::Redis.new(Redis.new("192.168.1.9", 9281), :encoder => :json)
+
 loop do
+  # This blocks until a message is dequeued.
   message = Queues.dequeue_blocking :pages_to_crawl
   process(message)
 end
@@ -30,6 +36,7 @@ loop do
     process(message)
   else
     # Timed out
+    break
   end
 end
 <code></pre>
