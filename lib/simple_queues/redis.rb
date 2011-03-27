@@ -93,7 +93,7 @@ module SimpleQueues
         _, result = @redis.blpop(q_name(queue_name), timeout.to_i)
         decode(result)
       else
-        raise "NOT DONE"
+        raise ArgumentError, "Expected 1 (timeout) or 2 (queue name, timeout) arguments, not #{args.length}"
       end
 
     end
