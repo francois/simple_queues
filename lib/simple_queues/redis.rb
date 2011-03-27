@@ -98,7 +98,8 @@ module SimpleQueues
 
     end
 
-  private
+    protected
+
     def q_name(queue_name)
       queue_name &&= queue_name.to_s
       raise ArgumentError, "Queue name argument was nil - must not be" if queue_name.nil? || queue_name.empty?
