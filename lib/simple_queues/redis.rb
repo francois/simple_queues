@@ -6,7 +6,7 @@ module SimpleQueues
   #
   # Messages are enqueued to the right, dequeued from the left - thus the most recent messages are at the end of the list.
   class Redis
-    attr_reader :encoder
+    attr_accessor :encoder
 
     # @param redis A Redis instance, or something that looks like Redis.
     # @param options [Hash] A set of options.
