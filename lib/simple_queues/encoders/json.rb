@@ -3,7 +3,7 @@ require "json"
 module SimpleQueues
   class JsonEncoder
     def encode(message)
-      JSON.generate(message)
+      message.to_json
     end
 
     def decode(message)
