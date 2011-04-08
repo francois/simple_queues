@@ -23,6 +23,14 @@ describe SimpleQueues::Redis, "dequeue_blocking" do
     lambda { queue.dequeue_blocking(nil) }.should raise_error(ArgumentError)
     lambda { queue.dequeue_blocking("") }.should raise_error(ArgumentError)
   end
+
+  it "should reraise underlying connection errors"
+  # Errno::ECONNREFUSED
+  # Errno::EAGAIN
+
+  context "given #exception_handler= is set with a block" do
+    it "should call the block to handle underlying connection exceptions"
+  end
 end
 
 describe SimpleQueues::Redis, "dequeue_with_timeout" do
