@@ -29,7 +29,13 @@ module SimpleQueues
       @queues = Hash.new
     end
 
+    # Saves a block for later execution from #dequeue_with_timeout or #dequeue.
+    #
+    # When the block's arity is 1, only the message will be passed.
+    # When the block's arity is 2, the queue's name and the message will be passed along, in that order.
+    # When the block's arity is negative (accepts a variable number of arguments), SimpleQueues::Redis behaves as if the block's arity was 2.
     def on_dequeue(queue_name, &block)
+      raise ArgumentError, "The provided block must accept at least one argument - #{block.inspect} accepts no arguments" if block.arity.zero?
       @queues[q_name(queue_name)] = block
     end
 
@@ -86,7 +92,16 @@ module SimpleQueues
         raise ArgumentError, "Timeout must not be nil" if timeout.nil? || timeout.to_s.empty?
 
         queue, result = @redis.blpop(*[@queues.keys, timeout.to_i].flatten)
-        @queues.fetch(queue).call(decode(result)) if queue
+        if queue then
+          block = @queues.fetch(queue)
+          message = decode(result)
+
+          if block.arity == 1 then
+            block.call(message)
+          else
+            block.call(queue, message)
+          end
+        end
         queue
       when 2
         queue_name, timeout = args.shift, args.shift

@@ -62,6 +62,48 @@ while $running do
 end
 </code></pre>
 
+Alternatively, the block you provide to #on_dequeue can accept two parameters and will be provided with the queue name:
+
+<pre><code>require "simple_queues"
+# Provides #underscore, #classify, #constantize and friends
+require "active_support/inflector"
+
+# Provides #seconds, #minutes and friends
+require "active_support/core_ext/numeric/time"
+
+Queues = SimpleQueues::Redis.new
+
+class BaseWorker
+  def initialize(message)
+    @message = message
+  end
+end
+
+class CrawlerControlWorker < BaseWorker
+  def run
+    $running = false
+  end
+end
+
+class PagesToCrawlWorker < BaseWorker
+  def run
+    # Crawl, do your own stuff here
+  end
+end
+
+def handler(queue_name, message)
+  klass = (queue_name.to_s << "_worker").classify.constantize
+  klass.new(message).run
+end
+
+Queues.on_dequeue :crawler_controls, &method(:handler)
+Queues.on_dequeue :pages_to_crawl,   &method(:handler)
+
+while $running
+  Queues.dequeue_with_timeout(30.seconds)
+end
+</code></pre>
+
 h2. LICENSE
 
 (The MIT License)
