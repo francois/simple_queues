@@ -52,14 +52,14 @@ module SimpleQueues
     #
     # @param queue_name [String, Symbol] The queue name, which must not be nil or the empty String.
     # @param message [#to_s] The message to be enqueued. The message will be turned into a String through #to_s before being enqueued. Must not be nil, but the empty string is accepted, although it seems meaningless to do so.
-    # @return No useful value.
+    # @return [String] The encoded message.
     # @raise ArgumentError Whenever the queue name or the message are nil, or the queue name is empty.
     def enqueue(queue_name, message)
       raise ArgumentError, "Only hashes are accepted as messages" unless message.is_a?(Hash)
 
-      msg = encode(message)
-      @redis.rpush(q_name(queue_name), msg)
-      msg
+      encoded_message = encode(message)
+      @redis.rpush(q_name(queue_name), encoded_message)
+      encoded_message
     end
 
     # Dequeues a message, and waits forever for one to arrive.
