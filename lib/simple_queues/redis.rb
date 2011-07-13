@@ -110,7 +110,6 @@ module SimpleQueues
       else
         raise ArgumentError, "Expected 1 (timeout) or 2 (queue name, timeout) arguments, not #{args.length}"
       end
-
     end
 
     protected
